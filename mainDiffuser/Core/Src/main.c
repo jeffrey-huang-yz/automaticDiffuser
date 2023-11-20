@@ -31,11 +31,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define AND_GATE_TRANSISTOR_Pin GPIO_PIN_5
-#define AND_GATE_TRANSISTOR_GPIO_Port GPIOA
 
-#define AND_GATE_2ND_TRANSISTOR_Pin GPIO_PIN_6
-#define AND_GATE_2ND_TRANSISTOR_GPIO_Port GPIOA
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -47,15 +43,7 @@
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-uint8_t Data[8]; // Assuming heart rate data fits within 8 bytes
-uint32_t heartrate_sum = 0;
-uint32_t count = 0;
-const uint32_t sample_time = 600; // 600 seconds
-float resting_heartrate = 0.0;
-_Bool resting_rate_set = 0; // Flag to check if resting rate is set
-uint32_t time_elapsed = 0; // Time elapsed since start
-const uint32_t and_gate_interval = 1800; // 30 minutes interval
-_Bool and_gate_active = 0; // State of the second transistor in the AND gate
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -64,47 +52,11 @@ static void MX_GPIO_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
-void calculateRestingHeartRate(void);
-void checkHeartRate(void);
-void toggleANDGateTransistor(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void calculateRestingHeartRate(void) {
-    if (count >= sample_time && !resting_rate_set) {
-        resting_heartrate = (float)heartrate_sum / count;
-        resting_rate_set = 1; // Set the flag to indicate resting rate is set
-    } else if (count >= sample_time) {
-        checkHeartRate();
-    }
-    heartrate_sum = 1000;
-    count = 0;
-}
 
-void checkHeartRate(void) {
-    float average_rate = (float)heartrate_sum / count;
-    if (average_rate > 0.8 * resting_heartrate) {
-        // Activate transistor in AND gate
-        HAL_GPIO_WritePin(GPIOA, AND_GATE_TRANSISTOR_Pin, GPIO_PIN_SET);
-    } else {
-        // Deactivate transistor in AND gate
-        HAL_GPIO_WritePin(GPIOA, AND_GATE_TRANSISTOR_Pin, GPIO_PIN_RESET);
-    }
-}
-
-void toggleANDGateTransistor(void) {
-    if (time_elapsed >= and_gate_interval) {
-        and_gate_active = !and_gate_active; // Toggle the state
-        time_elapsed = 0; // Reset the timer
-    }
-    // Set the second transistor state based on and_gate_active
-    if (and_gate_active) {
-        HAL_GPIO_WritePin(GPIOA, AND_GATE_2ND_TRANSISTOR_Pin, GPIO_PIN_SET);
-    } else {
-        HAL_GPIO_WritePin(GPIOA, AND_GATE_2ND_TRANSISTOR_Pin, GPIO_PIN_RESET);
-    }
-}
 /* USER CODE END 0 */
 
 /**
@@ -250,9 +202,6 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5|GPIO_PIN_6, GPIO_PIN_RESET);
-
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
@@ -265,13 +214,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : PC5 PC6 */
-  GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
