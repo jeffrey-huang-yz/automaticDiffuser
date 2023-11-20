@@ -107,6 +107,19 @@ void toggleANDGateTransistor(void) {
     }
 }
 
+void HAL_USART_RxCpltCallback(USART_HandleTypeDef *husart) {
+    if (husart->Instance == USART2) {
+        uint32_t heart_rate = atoi((char *)Data); // Convert Data to integer, assuming Data is properly formatted
+        heartrate_sum += heart_rate;
+        count++;
+
+        // Check if it's time to calculate the resting heart rate
+        calculateRestingHeartRate();
+
+        // Prepare to receive next data
+        HAL_USART_Receive_IT(&husart2, Data, sizeof(Data));
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -144,7 +157,16 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
 
+    /* USER CODE BEGIN 3 */
+    HAL_Delay(1000); // Delay of 1 second for each loop iteration
+    time_elapsed++;
+    // Check if it's time to toggle the second transistor in the AND gate
+    toggleANDGateTransistor();
+  }
   /* USER CODE END 3 */
 }
 
