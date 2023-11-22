@@ -45,7 +45,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-USART_HandleTypeDef husart2;
+UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 uint8_t Data[8]; // Assuming heart rate data fits within 8 bytes
@@ -64,7 +64,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_USART2_Init(void);
 /* USER CODE BEGIN PFP */
-void HAL_USART_RxCpltCallback(USART_HandleTypeDef *husart);  // USART reception complete callback
+void HAL_USART_RxCpltCallback(UART_HandleTypeDef *huart);  // USART reception complete callback
 void calculateRestingHeartRate(void);
 void checkHeartRate(void);
 void toggleANDGateTransistor(void);
@@ -107,8 +107,8 @@ void toggleANDGateTransistor(void) {
     }
 }
 
-void HAL_USART_RxCpltCallback(USART_HandleTypeDef *husart) {
-    if (husart->Instance == USART2) {
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART2) {
         uint32_t heart_rate = atoi((char *)Data); // Convert Data to integer, assuming Data is properly formatted
         heartrate_sum += heart_rate;
         count++;
@@ -117,7 +117,7 @@ void HAL_USART_RxCpltCallback(USART_HandleTypeDef *husart) {
         calculateRestingHeartRate();
 
         // Prepare to receive next data
-        HAL_USART_Receive_IT(&husart2, Data, sizeof(Data));
+        HAL_UART_Receive_IT(&huart2, Data, sizeof(Data));
     }
 }
 /* USER CODE END 0 */
@@ -129,7 +129,7 @@ void HAL_USART_RxCpltCallback(USART_HandleTypeDef *husart) {
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  HAL_USART_Receive_IT(&husart2, Data, sizeof(Data));
+  HAL_UART_Receive_IT(&huart2, Data, sizeof(Data));
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -150,7 +150,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USART2_Init();
+  MX_UART2_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -221,33 +221,19 @@ void SystemClock_Config(void)
   * @param None
   * @retval None
   */
-static void MX_USART2_Init(void)
+void MX_UART2_Init(void)
 {
-
-  /* USER CODE BEGIN USART2_Init 0 */
-
-  /* USER CODE END USART2_Init 0 */
-
-  /* USER CODE BEGIN USART2_Init 1 */
-
-  /* USER CODE END USART2_Init 1 */
-  husart2.Instance = USART2;
-  husart2.Init.BaudRate = 9600;
-  husart2.Init.WordLength = USART_WORDLENGTH_8B;
-  husart2.Init.StopBits = USART_STOPBITS_1;
-  husart2.Init.Parity = USART_PARITY_NONE;
-  husart2.Init.Mode = USART_MODE_TX_RX;
-  husart2.Init.CLKPolarity = USART_POLARITY_LOW;
-  husart2.Init.CLKPhase = USART_PHASE_1EDGE;
-  husart2.Init.CLKLastBit = USART_LASTBIT_DISABLE;
-  if (HAL_USART_Init(&husart2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN USART2_Init 2 */
-
-  /* USER CODE END USART2_Init 2 */
-
+    huart2.Instance = USART2;
+    huart2.Init.BaudRate = 9600;
+    huart2.Init.WordLength = UART_WORDLENGTH_8B;
+    huart2.Init.StopBits = UART_STOPBITS_1;
+    huart2.Init.Parity = UART_PARITY_NONE;
+    huart2.Init.Mode = UART_MODE_TX_RX;
+    huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+    if (HAL_UART_Init(&huart2) != HAL_OK) {
+        Error_Handler();
+    }
 }
 
 /**
